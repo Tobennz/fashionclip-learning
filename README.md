@@ -80,7 +80,7 @@ This project uses Python 3.12 and `uv` for dependency management.
 Clone the repository and enter the project folder:
 
 ```powershell
-git clone YOUR_REPOSITORY_URL
+git clone https://github.com/Tobennz/fashionclip-learning.git
 cd fashionclip-learning
 ```
 
