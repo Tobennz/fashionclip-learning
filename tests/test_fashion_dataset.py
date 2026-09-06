@@ -1,13 +1,19 @@
 from pathlib import Path 
+import pytest
 
 from src.data.fashion_dataset import load_fashion_products 
 
 def test_load_real_fashion_subset():
-    project_root = Path(__file__).parent.parent 
+    project_root = Path(__file__).parent.parent
+    csv_path = project_root / "data" / "fashion" / "styles.csv"
+    images_dir = project_root / "data" / "fashion" / "images"
+
+    if not csv_path.exists() or not images_dir.exists():
+        pytest.skip("Kaggle fashion dataset is not installed.")
 
     products = load_fashion_products(
-        csv_path=project_root / "data" / "fashion" / "styles.csv",
-        images_dir=project_root / "data" / "fashion" / "images",
+        csv_path=csv_path,
+        images_dir=images_dir,
         limit=5,
     )
 

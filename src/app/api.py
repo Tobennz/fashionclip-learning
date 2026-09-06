@@ -27,22 +27,26 @@ project_root = Path(__file__).parent.parent.parent
 index_dir = project_root / "outputs" / "catalog"
 image_dir = project_root / "data" / "fashion" / "images"
 
-real_service = InferenceService(
-    index_dir=index_dir,
-    embedder=FashionClipEmbedder(),
-    alpha=0.5,
-)
+real_service = None 
 
 app = FastAPI(title="Fashion Product Recommender")
 
 app.mount(
     "/images",
-    StaticFiles(directory=image_dir),
+    StaticFiles(directory=image_dir, check_dir=False),
     name="images",
 )
 
-
 def get_service():
+    global real_service
+
+    if real_service is None:
+        real_service = InferenceService(
+            index_dir=index_dir,
+            embedder=FashionClipEmbedder(),
+            alpha=0.5,
+        )
+
     return real_service
 
 @app.get("/ui", include_in_schema=False)
