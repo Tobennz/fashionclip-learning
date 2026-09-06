@@ -1,0 +1,8 @@
+seed: 0
+
+fusion:
+  alpha: 0.5
+
+paths:
+  data_dir: data
+  output_dir: outputs

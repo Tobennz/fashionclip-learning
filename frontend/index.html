@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Fashion Product Recommender</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f5f7;
+            color: #1f2937;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 32px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0 0 8px;
+        }
+
+        header p {
+            margin: 0;
+            color: #d1d5db;
+        }
+
+        main {
+            width: min(1100px, 92%);
+            margin: 30px auto;
+        }
+
+        .search-panel {
+            background: white;
+            padding: 24px;
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            background: #94a3b8;
+            cursor: wait;
+        }
+
+        #status {
+            min-height: 24px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #dc2626;
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            overflow: hidden;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 260px;
+            object-fit: contain;
+            background: white;
+        }
+
+        .product-info {
+            padding: 16px;
+        }
+
+        .product-info h2 {
+            margin: 0 0 10px;
+            font-size: 18px;
+        }
+
+        .product-info p {
+            margin: 6px 0;
+            color: #475569;
+        }
+
+        .score {
+            font-weight: bold;
+            color: #2563eb;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Fashion Product Recommender</h1>
+        <p>Search using text, an image, or both.</p>
+    </header>
+
+    <main>
+        <form id="search-form" class="search-panel">
+            <div class="field">
+                <label for="text">Describe what you want</label>
+                <input
+                    id="text"
+                    name="text"
+                    type="text"
+                    placeholder="Example: navy blue checked men's shirt"
+                >
+            </div>
+
+            <div class="field">
+                <label for="image">Upload an optional image</label>
+                <input
+                    id="image"
+                    name="image"
+                    type="file"
+                    accept="image/*"
+                >
+            </div>
+
+            <div class="field">
+                <label for="k">Number of recommendations</label>
+                <input
+                    id="k"
+                    name="k"
+                    type="number"
+                    value="5"
+                    min="1"
+                    max="20"
+                >
+            </div>
+
+            <button id="search-button" type="submit">
+                Find Similar Products
+            </button>
+        </form>
+
+        <div id="status"></div>
+        <section id="results" class="results"></section>
+    </main>
+
+    <script>
+        const form = document.querySelector("#search-form");
+        const status = document.querySelector("#status");
+        const results = document.querySelector("#results");
+        const button = document.querySelector("#search-button");
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const text = document.querySelector("#text").value.trim();
+            const image = document.querySelector("#image").files[0];
+            const k = document.querySelector("#k").value;
+
+            if (!text && !image) {
+                status.textContent = "Please enter text or choose an image.";
+                status.className = "error";
+                return;
+            }
+
+            const formData = new FormData();
+
+            if (text) {
+                formData.append("text", text);
+            }
+
+            if (image) {
+                formData.append("image", image);
+            }
+
+            formData.append("k", k);
+
+            status.textContent = "Finding recommendations...";
+            status.className = "";
+            results.innerHTML = "";
+            button.disabled = true;
+
+            try {
+              const response = await fetch("/recommend/upload", {
+                 method: "POST",
+                 body: formData,
+              });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "Recommendation failed.");
+                }
+
+                showResults(data.items);
+                status.textContent =
+                    `Found ${data.items.length} recommendations.`;
+            } catch (error) {
+                status.textContent = error.message;
+                status.className = "error";
+            } finally {
+                button.disabled = false;
+            }
+        });
+
+        function showResults(items) {
+            for (const item of items) {
+                const card = document.createElement("article");
+                card.className = "product-card";
+
+                const image = document.createElement("img");
+                image.src = item.image_url;
+                image.alt = item.name;
+
+                const information = document.createElement("div");
+                information.className = "product-info";
+
+                const name = document.createElement("h2");
+                name.textContent = item.name;
+
+                const details = document.createElement("p");
+                details.textContent =
+                    `${item.gender} · ${item.articleType} · ${item.baseColour}`;
+
+                const score = document.createElement("p");
+                score.className = "score";
+                score.textContent =
+                    `Similarity: ${(item.score * 100).toFixed(1)}%`;
+
+                information.append(name, details, score);
+                card.append(image, information);
+                results.append(card);
+            }
+        }
+    </script>
+</body>
+</html>

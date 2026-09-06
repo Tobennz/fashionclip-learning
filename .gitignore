@@ -1,0 +1,39 @@
+# Python virtual environment
+.venv/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Pytest files
+.pytest_cache/
+.pytest-temp/
+
+# Editor settings
+.vscode/
+.idea/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Kaggle credentials
+kaggle.json
+
+# Downloaded datasets
+# Downloaded Kaggle fashion dataset
+data/fashion/
+
+# Generated vector indexes
+outputs/catalog/*.npy
+outputs/catalog/*.json
+
+# Model and Hugging Face caches
+.cache/
+huggingface/
+models/
+
+# Operating-system files
+.DS_Store
+Thumbs.db
